@@ -142,7 +142,7 @@ int main(int argc, char **argv)
 
     // Save camera trajectory
     // SLAM.SaveResults("/Users/steed/work/code/Evaluation/ijrr2020/omd/omd_results/new/");
-    // SLAM.SaveResults("/Users/steed/work/code/Evaluation/ijrr2020/00/new/");
+    SLAM.SaveResults("/home/ebonetto/VDO-slam");
 
     return 0;
 }

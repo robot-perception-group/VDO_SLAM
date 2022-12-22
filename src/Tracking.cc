@@ -127,8 +127,11 @@ Tracking::Tracking(System *pSys, Map *pMap, const string &strSettingPath, const 
             mTestData = VirtualKITTI;
             cout << "- tested dataset: Virtual KITTI " << endl;
             break;
+	case 4:
+	    mTestData = GRADE;
+            cout << "- tested dataset: GRADE " << endl;
+            break;
     }
-
     if(sensor==System::STEREO || sensor==System::RGBD)
     {
         mThDepth = (float)fSettings["ThDepthBG"];
@@ -199,6 +202,10 @@ cv::Mat Tracking::GrabImageRGBD(const cv::Mat &imRGB, cv::Mat &imD, const cv::Ma
                     // --- for monocular depth map ---
                     // imD.at<float>(i,j) = imD.at<float>(i,j)/500.0;
                 }
+		else if (mTestData==GRADE)
+		{
+                    imD.at<float>(i,j) = imD.at<float>(i,j)/mDepthMapFactor;
+		}
             }
         }
     }
@@ -338,6 +345,8 @@ cv::Mat Tracking::GrabImageRGBD(const cv::Mat &imRGB, cv::Mat &imD, const cv::Ma
         if (mTestData==OMD)
             mCurrentFrame.vObjPose_gt[i] = ObjPoseParsingOX(vObjPose_gt[i]);
         else if (mTestData==KITTI)
+            mCurrentFrame.vObjPose_gt[i] = ObjPoseParsingKT(vObjPose_gt[i]);
+	else if (mTestData==GRADE)
             mCurrentFrame.vObjPose_gt[i] = ObjPoseParsingKT(vObjPose_gt[i]);
     }
 
@@ -792,7 +801,7 @@ void Tracking::Track()
             {
                 if (mLastFrame.nSemPosi_gt[k]==mCurrentFrame.nSemPosition[i]){
                     cout << "it is " << mLastFrame.nSemPosi_gt[k] << "!" << endl;
-                    if (mTestData==OMD)
+                    if (mTestData==OMD || mTestData==GRADE)
                     {
                         L_w_p = mLastFrame.vObjPose_gt[k];
                     }
@@ -811,7 +820,7 @@ void Tracking::Track()
             {
                 if (mCurrentFrame.nSemPosi_gt[k]==mCurrentFrame.nSemPosition[i]){
                     cout << "it is " << mCurrentFrame.nSemPosi_gt[k] << "!" << endl;
-                    if (mTestData==OMD)
+                    if (mTestData==OMD || mTestData==GRADE)
                     {
                         L_w_c = mCurrentFrame.vObjPose_gt[k];
                     }
@@ -1195,7 +1204,7 @@ void Tracking::Track()
         // GetVelocityError(mpMap->vmRigidMotion, mpMap->vp3DPointDyn, mpMap->vnFeatLabel,
         //                  mpMap->vnRMLabel, mpMap->vfAllSpeed_GT, mpMap->vnAssoDyn, mpMap->vbObjStat);
 
-        if (bGlobalBatch && mTestData==KITTI)
+        if (bGlobalBatch && (mTestData==KITTI || mTestData==GRADE))
         {
             // Get Full Batch Optimization
             Optimizer::FullBatchOptimization(mpMap,mK);
@@ -1651,9 +1660,14 @@ cv::Mat Tracking::GetInitModelCam(const std::vector<int> &MatchId, std::vector<i
     // solve
     int iter_num = 500;
     double reprojectionError = 0.4, confidence = 0.98; // 0.5 0.3
-    cv::solvePnPRansac(pre_3d, cur_2d, camera_mat, distCoeffs, Rvec, Tvec, false,
+    try{
+	cv::solvePnPRansac(pre_3d, cur_2d, camera_mat, distCoeffs, Rvec, Tvec, false,
                iter_num, reprojectionError, confidence, inliers, cv::SOLVEPNP_AP3P); // AP3P EPNP P3P ITERATIVE DLS
-
+	}
+    catch(cv::Exception){
+        cout << "rvec:" << Rvec << endl;
+        cout << "tvec:" << Tvec << endl;
+    }
     cv::Rodrigues(Rvec, d);
 
     // assign the result to current pose
@@ -1665,7 +1679,7 @@ cv::Mat Tracking::GetInitModelCam(const std::vector<int> &MatchId, std::vector<i
     // calculate the re-projection error
     std::vector<int> MM_inlier;
     cv::Mat MotionModel;
-    if (mVelocity.empty())
+    if (mVelocity.empty() || cur_2d.size() == 0)
         MotionModel = cv::Mat::eye(4,4,CV_32F)*mLastFrame.mTcw;
     else
         MotionModel = mVelocity*mLastFrame.mTcw;
