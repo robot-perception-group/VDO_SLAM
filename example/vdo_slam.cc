@@ -171,7 +171,7 @@ void LoadData(const string &strPathToSequence, vector<string> &vstrFilenamesSEM,
     fTimes.close();
 
     // +++ image, depth, semantic and moving object tracking mask +++
-    string strPrefixImage = strPathToSequence + "/image_0/";         // image  image_0
+    string strPrefixImage = strPathToSequence + "/rgb/";         // image  image_0
     string strPrefixDepth = strPathToSequence + "/depth/";           // depth_gt  depth  depth_mono_stereo
     string strPrefixSemantic = strPathToSequence + "/semantic/";     // semantic_gt  semantic
     string strPrefixFlow = strPathToSequence + "/flow/";             // flow_gt  flow
