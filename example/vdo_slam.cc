@@ -22,15 +22,15 @@ using namespace std;
 
 void LoadData(const string &strPathToSequence, vector<string> &vstrFilenamesSEM,
               vector<string> &vstrFilenamesRGB, vector<string> &vstrFilenamesDEP, vector<string> &vstrFilenamesFLO,
-              vector<double> &vTimestamps, vector<cv::Mat> &vPoseGT, vector<vector<float> > &vObjPoseGT);
+              vector<double> &vTimestamps, vector<cv::Mat> &vPoseGT, vector<vector<float> > &vObjPoseGT, int offset);
 
 void LoadMask(const string &strFilenamesMask, cv::Mat &imMask);
 
 int main(int argc, char **argv)
 {
-    if(argc != 3)
+    if(argc != 4)
     {
-        cerr << endl << "Usage: ./vdo_slam path_to_settings path_to_sequence" << endl;
+        cerr << endl << "Usage: ./vdo_slam path_to_settings path_to_sequence offset_id" << endl;
         return 1;
     }
 
@@ -44,7 +44,7 @@ int main(int argc, char **argv)
     vector<double> vTimestamps;
 
     LoadData(argv[2], vstrFilenamesSEM, vstrFilenamesRGB, vstrFilenamesDEP, vstrFilenamesFLO,
-                  vTimestamps, vPoseGT, vObjPoseGT);
+                  vTimestamps, vPoseGT, vObjPoseGT, atoi(argv[3]));
 
     // save the id of object pose in each frame
     vector<vector<int> > vObjPoseID(vstrFilenamesRGB.size());
@@ -149,7 +149,7 @@ int main(int argc, char **argv)
 
 void LoadData(const string &strPathToSequence, vector<string> &vstrFilenamesSEM,
               vector<string> &vstrFilenamesRGB,vector<string> &vstrFilenamesDEP, vector<string> &vstrFilenamesFLO,
-              vector<double> &vTimestamps, vector<cv::Mat> &vPoseGT, vector<vector<float> > &vObjPoseGT)
+              vector<double> &vTimestamps, vector<cv::Mat> &vPoseGT, vector<vector<float> > &vObjPoseGT, int offset)
 {
     // +++ timestamps +++
     ifstream fTimes;
@@ -183,7 +183,7 @@ void LoadData(const string &strPathToSequence, vector<string> &vstrFilenamesSEM,
     vstrFilenamesFLO.resize(nTimes);
 
 
-    for(int i=0; i<nTimes; i++)
+    for(int i=0+offset; i<nTimes+offset; i++)
     {
         stringstream ss;
         ss << setfill('0') << setw(6) << i;
