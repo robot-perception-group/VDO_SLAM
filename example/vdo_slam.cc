@@ -99,7 +99,7 @@ int main(int argc, char **argv)
     {
         cout << endl;
         cout << "=======================================================" << endl;
-        cout << "Processing Frame: " << ni << endl;
+        cout << "Processing Frame: " << ni << " " << vstrFilenamesRGB[ni] << endl;
 
         // Read imreadmage and depthmap from file
         imRGB = cv::imread(vstrFilenamesRGB[ni],CV_LOAD_IMAGE_UNCHANGED);
@@ -175,7 +175,6 @@ void LoadData(const string &strPathToSequence, vector<string> &vstrFilenamesSEM,
     string strPrefixDepth = strPathToSequence + "/depth/";           // depth_gt  depth  depth_mono_stereo
     string strPrefixSemantic = strPathToSequence + "/semantic/";     // semantic_gt  semantic
     string strPrefixFlow = strPathToSequence + "/flow/";             // flow_gt  flow
-
     const int nTimes = vTimestamps.size();
     vstrFilenamesRGB.resize(nTimes);
     vstrFilenamesDEP.resize(nTimes);
@@ -187,10 +186,10 @@ void LoadData(const string &strPathToSequence, vector<string> &vstrFilenamesSEM,
     {
         stringstream ss;
         ss << setfill('0') << setw(6) << i;
-        vstrFilenamesRGB[i] = strPrefixImage + ss.str() + ".png";
-        vstrFilenamesDEP[i] = strPrefixDepth + ss.str() + ".png";
-        vstrFilenamesSEM[i] = strPrefixSemantic + ss.str() + ".txt";
-        vstrFilenamesFLO[i] = strPrefixFlow + ss.str() + ".flo";
+        vstrFilenamesRGB[i-offset] = strPrefixImage + ss.str() + ".png";
+        vstrFilenamesDEP[i-offset] = strPrefixDepth + ss.str() + ".png";
+        vstrFilenamesSEM[i-offset] = strPrefixSemantic + ss.str() + ".txt";
+        vstrFilenamesFLO[i-offset] = strPrefixFlow + ss.str() + ".flo";
     }
 
 
